@@ -27,6 +27,7 @@ public class RegionRemoverPlugin extends JavaPlugin {
 	public void onEnable() {
 		log = getLogger();
 		wg = WGBukkit.getPlugin();
+		adminRegions.add("__global__");
 		adminRegions.add("spawn");
 		adminRegions.add("spawn-area");
 		adminRegions.add("spawn_area");
