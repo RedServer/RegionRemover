@@ -1,0 +1,6 @@
+name: RegionRemover
+version: 1.0
+main: theandrey.regionremover.RegionRemoverPlugin
+depend: [WorldGuard]
+commands:
+    removeregions: {}
