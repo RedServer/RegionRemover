@@ -31,14 +31,6 @@ public class RegionRemoverPlugin extends JavaPlugin {
 		adminRegions.add("spawn");
 		adminRegions.add("spawn-area");
 		adminRegions.add("spawn_area");
-		adminRegions.add("road-north");
-		adminRegions.add("road_north");
-		adminRegions.add("road-south");
-		adminRegions.add("road_south");
-		adminRegions.add("road-west");
-		adminRegions.add("road_west");
-		adminRegions.add("road-east");
-		adminRegions.add("road_east");
 	}
 
 	@Override
