@@ -6,7 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class RegionRemoverPlugin extends JavaPlugin {
+public final class RegionRemoverPlugin extends JavaPlugin {
 
 	public static Logger log;
 
@@ -18,9 +18,12 @@ public class RegionRemoverPlugin extends JavaPlugin {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(sender.isOp()) {
-			sender.sendMessage("Начинаем удалять регионы...");
-			new RemoveTask(this);
-		} else sender.sendMessage(ChatColor.RED + "Ошибка доступа");
+			sender.sendMessage(ChatColor.YELLOW + "Начинаем удалять регионы...");
+			RemoveTask task = new RemoveTask(sender);
+			task.start(this);
+		} else {
+			sender.sendMessage(ChatColor.RED + "Ошибка доступа");
+		}
 		return true;
 	}
 

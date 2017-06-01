@@ -5,21 +5,26 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.databases.ProtectionDatabaseException;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitTask;
 
 public final class RemoveTask implements Runnable {
 
 	private final static Set<String> adminRegions = new HashSet<>();
+
 	private final WorldGuardPlugin wg;
-	private final List<RegionManager> manages = new ArrayList<>();
-	private final BukkitTask task;
+	private final List<World> worlds = new ArrayList<>();
+	private WeakReference<CommandSender> launchedBy;
+	private BukkitTask task;
 
 	static {
 		adminRegions.add("__global__");
@@ -28,51 +33,54 @@ public final class RemoveTask implements Runnable {
 		adminRegions.add("spawn_area");
 	}
 
-	public RemoveTask(RegionRemoverPlugin plugin) {
+	public RemoveTask(CommandSender launchedBy) {
 		wg = WGBukkit.getPlugin();
+		this.launchedBy = new WeakReference<>(launchedBy);
+		worlds.addAll(Bukkit.getWorlds());
+	}
 
-		for(World world : Bukkit.getWorlds()) {
-			RegionManager mgr = wg.getRegionManager(world);
-			if(mgr == null) continue;
-			manages.add(mgr);
-		}
-
+	public void start(RegionRemoverPlugin plugin) {
 		task = Bukkit.getScheduler().runTaskTimer(plugin, this, 0, 1);
 	}
 
 	@Override
 	public void run() {
-		if(manages.isEmpty()) {
-			RegionRemoverPlugin.log.info("Удаление регионов завершено.");
+		if(worlds.isEmpty()) {
 			task.cancel();
+
+			CommandSender sender = launchedBy.get();
+			if(sender != null) sender.sendMessage(ChatColor.GREEN + "Удаление регионов завершено.");
+			RegionRemoverPlugin.log.info("Удаление регионов завершено.");
 			return;
 		}
 
-		RegionManager mgr = manages.get(0);
-
+		World world = worlds.get(0);
+		RegionManager mgr = wg.getRegionManager(world);
 		boolean stopByLimit = false;
-		final long startTime = System.currentTimeMillis();
 
-		for(ProtectedRegion region : new ArrayList<>(mgr.getRegions().values())) {
-			String id = region.getId();
-			if(adminRegions.contains(id.toLowerCase())) continue;
-			mgr.removeRegion(id);
-			RegionRemoverPlugin.log.info("Удалён регион: " + id);
+		if(mgr != null) {
+			final long startTime = System.currentTimeMillis();
+			for(ProtectedRegion region : new ArrayList<>(mgr.getRegions().values())) {
+				String id = region.getId();
+				if(adminRegions.contains(id.toLowerCase())) continue;
+				mgr.removeRegion(id);
+				RegionRemoverPlugin.log.info("Удалён регион: " + id);
 
-			// Прерывание по тайм-ауту
-			if((System.currentTimeMillis() - startTime) >= 1000) {
-				stopByLimit = true;
-				break;
+				// Прерывание по тайм-ауту
+				if((System.currentTimeMillis() - startTime) >= 1000) {
+					stopByLimit = true;
+					break;
+				}
+			}
+
+			try {
+				mgr.save();
+			} catch (ProtectionDatabaseException ex) {
+				RegionRemoverPlugin.log.log(Level.SEVERE, "Произошла ошибка при сохранении регионов", ex);
 			}
 		}
 
-		try {
-			mgr.save();
-		} catch (ProtectionDatabaseException ex) {
-			RegionRemoverPlugin.log.log(Level.SEVERE, "Save fail", ex);
-		}
-
-		if(!stopByLimit) manages.remove(mgr);
+		if(!stopByLimit) worlds.remove(world);
 	}
 
 }
