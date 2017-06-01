@@ -1,6 +1,4 @@
-/build
-/dist
-/nbproject/private
+/target
 
 # Windows image file caches
 Thumbs.db
@@ -49,3 +47,4 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/nbproject/

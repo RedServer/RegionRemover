@@ -1,5 +1,5 @@
 name: RegionRemover
-version: 1.0
+version: ${project.version}
 main: theandrey.regionremover.RegionRemoverPlugin
 depend: [WorldGuard]
 commands:
