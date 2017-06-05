@@ -5,7 +5,7 @@
 	<!-- Project -->
 	<groupId>ru.redserver</groupId>
 	<artifactId>RegionRemover</artifactId>
-	<version>1.0-legacy</version>
+	<version>1.1-legacy</version>
 	<packaging>jar</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
