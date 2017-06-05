@@ -7,9 +7,7 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,27 +17,21 @@ import org.bukkit.scheduler.BukkitTask;
 
 public final class RemoveTask implements Runnable {
 
-	private final static Set<String> adminRegions = new HashSet<>();
-
+	private final RegionRemoverPlugin plugin;
 	private final WorldGuardPlugin wg;
 	private final List<World> worlds = new ArrayList<>();
+
 	private WeakReference<CommandSender> launchedBy;
 	private BukkitTask task;
 
-	static {
-		adminRegions.add("__global__");
-		adminRegions.add("spawn");
-		adminRegions.add("spawn-area");
-		adminRegions.add("spawn_area");
-	}
-
-	public RemoveTask(CommandSender launchedBy) {
+	public RemoveTask(RegionRemoverPlugin plugin) {
 		wg = WGBukkit.getPlugin();
-		this.launchedBy = new WeakReference<>(launchedBy);
 		worlds.addAll(Bukkit.getWorlds());
+		this.plugin = plugin;
 	}
 
-	public void start(RegionRemoverPlugin plugin) {
+	public void start(CommandSender launchedBy) {
+		this.launchedBy = new WeakReference<>(launchedBy);
 		task = Bukkit.getScheduler().runTaskTimer(plugin, this, 0, 1);
 	}
 
@@ -62,7 +54,7 @@ public final class RemoveTask implements Runnable {
 			final long startTime = System.currentTimeMillis();
 			for(ProtectedRegion region : new ArrayList<>(mgr.getRegions().values())) {
 				String id = region.getId();
-				if(adminRegions.contains(id.toLowerCase())) continue;
+				if(plugin.config.protectedRegions.contains(id.toLowerCase())) continue;
 				mgr.removeRegion(id);
 				RegionRemoverPlugin.log.info("Удалён регион: " + id);
 
