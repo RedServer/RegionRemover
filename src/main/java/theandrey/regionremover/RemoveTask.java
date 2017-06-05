@@ -7,9 +7,7 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -18,32 +16,20 @@ import org.bukkit.scheduler.BukkitTask;
 
 public final class RemoveTask implements Runnable {
 
-	private final static Set<String> adminRegions = new HashSet<>();
-
 	private final WorldGuardPlugin wg;
 	private final List<World> worlds = new ArrayList<>();
+	private final RegionRemoverPlugin plugin;
 	private BukkitTask task;
-	private final String defaultWorld;
-	private final WeakReference<CommandSender> launchedBy;
+	private WeakReference<CommandSender> launchedBy;
 
-	static {
-		adminRegions.add("spawn");
-		adminRegions.add("spawn-area");
-		adminRegions.add("road-north");
-		adminRegions.add("road-south");
-		adminRegions.add("road-west");
-		adminRegions.add("road-east");
-	}
-
-	public RemoveTask(CommandSender launchedBy) {
+	public RemoveTask(RegionRemoverPlugin plugin) {
 		wg = WGBukkit.getPlugin();
-		this.launchedBy = new WeakReference<>(launchedBy);
-
 		worlds.addAll(Bukkit.getWorlds());
-		defaultWorld = Bukkit.getWorlds().get(0).getName();
+		this.plugin = plugin;
 	}
 
-	public void start(RegionRemoverPlugin plugin) {
+	public void start(CommandSender launchedBy) {
+		this.launchedBy = new WeakReference<>(launchedBy);
 		task = Bukkit.getScheduler().runTaskTimer(plugin, this, 0, 1);
 	}
 
@@ -67,7 +53,7 @@ public final class RemoveTask implements Runnable {
 			for(ProtectedRegion region : new ArrayList<>(mgr.getRegions().values())) {
 				if(region instanceof GlobalProtectedRegion) continue; // нельзя удалять
 				String id = region.getId();
-				if(world.getName().equalsIgnoreCase(defaultWorld) && adminRegions.contains(id.toLowerCase())) continue;
+				if(plugin.config.protectedRegions.contains(id.toLowerCase())) continue;
 				mgr.removeRegion(id);
 				RegionRemoverPlugin.log.info("Удалён регион: " + id);
 
