@@ -21,6 +21,7 @@ public final class RemoveTask implements Runnable {
 	private final RegionRemoverPlugin plugin;
 	private BukkitTask task;
 	private WeakReference<CommandSender> launchedBy;
+	private boolean removeAll;
 
 	public RemoveTask(RegionRemoverPlugin plugin) {
 		wg = WGBukkit.getPlugin();
@@ -28,8 +29,9 @@ public final class RemoveTask implements Runnable {
 		this.plugin = plugin;
 	}
 
-	public void start(CommandSender launchedBy) {
+	public void start(CommandSender launchedBy, boolean removeAll) {
 		this.launchedBy = new WeakReference<>(launchedBy);
+		this.removeAll = removeAll;
 		task = Bukkit.getScheduler().runTaskTimer(plugin, this, 0, 1);
 	}
 
@@ -53,9 +55,9 @@ public final class RemoveTask implements Runnable {
 			for(ProtectedRegion region : new ArrayList<>(mgr.getRegions().values())) {
 				if(region instanceof GlobalProtectedRegion) continue; // нельзя удалять
 				String id = region.getId();
-				if(plugin.config.protectedRegions.contains(id.toLowerCase())) continue;
+				if(!removeAll && plugin.config.protectedRegions.contains(id.toLowerCase())) continue;
 				mgr.removeRegion(id);
-				RegionRemoverPlugin.log.info("Удалён регион: " + id);
+				RegionRemoverPlugin.log.info("Удалён регион: " + id + " (" + world.getName() + ")");
 
 				// Прерывание по тайм-ауту
 				if((System.currentTimeMillis() - startTime) >= 1000) {
