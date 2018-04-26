@@ -44,7 +44,7 @@ public final class RegionRemoverPlugin extends JavaPlugin {
 
 			} else if(args[0].equalsIgnoreCase("remove")) {
 
-				boolean removeAll = (args.length >= 1 && args[1].equalsIgnoreCase("all"));
+				boolean removeAll = (args.length >= 2 && args[1].equalsIgnoreCase("all"));
 				sender.sendMessage(ChatColor.YELLOW + "Начинаем удалять регионы...");
 				RemoveTask task = new RemoveTask(this);
 				task.start(sender, removeAll);
